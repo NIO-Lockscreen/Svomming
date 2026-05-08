@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>&#x1F3CA; Svømmestevne – Verdal Open 2025</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;min-height:100vh}
+.hdr{background:linear-gradient(135deg,#1a3a5c,#0d2137);padding:14px 22px;border-bottom:2px solid #2a6db5;display:flex;align-items:center;gap:14px}
+.hdr-logo{font-size:26px}
+.hdr h1{font-size:1.15rem;font-weight:700;color:#4fc3f7}
+.hdr .sub{font-size:0.76rem;color:#78909c}
+.body{display:flex;height:calc(100vh - 58px)}
+.sidebar{width:260px;min-width:220px;background:#131f2d;border-right:1px solid #1e3a5c;overflow-y:auto;display:flex;flex-direction:column}
+.sb-sec{padding:11px 13px;border-bottom:1px solid #1e3a5c}
+.sb-sec h3{font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:#4fc3f7;margin-bottom:7px}
+.search{width:100%;padding:7px 11px;background:#1e2d3e;border:1px solid #2a4a6a;border-radius:7px;color:#e8ecf0;font-size:0.84rem;outline:none}
+.search:focus{border-color:#4fc3f7}
+.search::placeholder{color:#546e7a}
+.evsel-wrap{position:relative}
+.evsel{width:100%;padding:7px 28px 7px 10px;background:#1e2d3e;border:1px solid #2a4a6a;border-radius:7px;color:#e8ecf0;font-size:0.8rem;outline:none;cursor:pointer;appearance:none}
+.evsel:focus{border-color:#4fc3f7}
+.ath-list{flex:1;overflow-y:auto}
+.ath-item{padding:9px 13px;cursor:pointer;border-bottom:1px solid #1a2d40;transition:background .15s}
+.ath-item:hover{background:#1e2d3e}
+.ath-item.active{background:#1a3a5c;border-left:3px solid #4fc3f7;padding-left:10px}
+.ath-name{font-size:0.86rem;font-weight:600;color:#e0e7ef}
+.ath-club{font-size:0.72rem;color:#78909c;margin-top:2px}
+.main{flex:1;overflow-y:auto;padding:18px}
+.card{background:#131f2d;border:1px solid #1e3a5c;border-radius:11px;margin-bottom:14px;overflow:hidden}
+.card-hdr{background:linear-gradient(90deg,#1a3a5c,#162c45);padding:11px 15px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.card-hdr h2{font-size:0.92rem;color:#4fc3f7;font-weight:700}
+.badge{background:#0d47a1;color:#90caf9;padding:2px 9px;border-radius:20px;font-size:0.73rem}
+.hero{background:linear-gradient(135deg,#1a3a5c,#0d2137);border:1px solid #2a6db5;border-radius:13px;padding:18px;margin-bottom:16px;display:flex;align-items:center;gap:16px}
+.avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#1565c0,#4fc3f7);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:#fff;flex-shrink:0}
+.hero-info h2{font-size:1.1rem;color:#e0e7ef}
+.born{font-size:0.8rem;color:#78909c;margin:3px 0}
+.club-lbl{font-size:0.86rem;color:#4fc3f7}
+.res-row{display:flex;align-items:center;padding:9px 15px;border-bottom:1px solid #1a2d40;gap:11px;transition:background .15s}
+.res-row:hover{background:#1a2d40}
+.res-row:last-child{border-bottom:none}
+.rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.74rem;font-weight:700;flex-shrink:0;background:#1e2d3e;color:#90a4ae}
+.r1{background:#f9a825;color:#1a1000}
+.r2{background:#78909c;color:#fff}
+.r3{background:#bf360c;color:#fff}
+.res-info{flex:1;min-width:0}
+.res-ev{font-size:0.84rem;font-weight:600;color:#b0c4de;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res-cls{font-size:0.71rem;color:#546e7a;margin-top:2px}
+.res-time{font-size:0.95rem;font-weight:700;color:#4fc3f7;font-family:monospace;white-space:nowrap}
+.dnf{color:#ef5350;font-size:0.82rem}
+.cls-hdr{padding:6px 15px;background:#0d1b2a;color:#78909c;font-size:0.71rem;text-transform:uppercase;letter-spacing:.5px}
+.stats-row{display:flex;gap:18px;flex-wrap:wrap;padding:12px 15px;border-top:1px solid #1a2d40}
+.stat-item{display:flex;flex-direction:column;gap:3px}
+.stat-lbl{font-size:0.68rem;color:#546e7a;text-transform:uppercase;letter-spacing:.5px}
+.stat-val{font-size:.95rem;font-weight:700;color:#e0e7ef}
+.splits-wrap{padding:12px 15px}
+.splits-title{font-size:0.68rem;color:#546e7a;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
+.splits-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.split-cell{background:#1a2d40;border-radius:6px;padding:7px;text-align:center;font-size:0.8rem;color:#b0bec5;font-family:monospace}
+.loading{text-align:center;padding:40px;color:#4fc3f7}
+.spinner{display:inline-block;width:28px;height:28px;border:3px solid #1e3a5c;border-top-color:#4fc3f7;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:36px;color:#546e7a}
+.empty .ico{font-size:2.3rem;margin-bottom:9px}
+.welcome{text-align:center;padding:60px 20px}
+.welcome .ico{font-size:3.2rem;margin-bottom:12px}
+.welcome h2{font-size:1.2rem;color:#4fc3f7;margin-bottom:7px}
+.welcome p{color:#78909c;font-size:0.86rem;line-height:1.6;max-width:380px;margin:0 auto}
+.back-btn{background:#1e2d3e;border:1px solid #2a4a6a;color:#90caf9;padding:6px 15px;border-radius:7px;cursor:pointer;margin-bottom:14px;font-size:0.81rem;display:inline-block}
+.back-btn:hover{background:#1a3a5c}
+.proxy-info{font-size:0.7rem;color:#546e7a;padding:4px 13px 8px;font-style:italic}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#0f1923}
+::-webkit-scrollbar-thumb{background:#1e3a5c;border-radius:3px}
+@media(max-width:600px){
+  .body{flex-direction:column}
+  .sidebar{width:100%;max-height:38vh;min-width:unset}
+  .splits-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-logo">&#x1F3CA;</div>
+  <div>
+    <h1>Verdal Open 2025</h1>
+    <div class="sub">Livetiming &ndash; ltmobil.medley.no via egen online API</div>
+  </div>
+</div>
+<div class="body">
+  <div class="sidebar">
+    <div class="sb-sec">
+      <h3>S&oslash;k ut&oslash;ver</h3>
+      <input class="search" id="srch" placeholder="Navn eller klubb..." autocomplete="off">
+    </div>
+    <div class="sb-sec">
+      <h3>Velg &oslash;velse</h3>
+      <div class="evsel-wrap">
+        <select class="evsel" id="evsel"><option value="">-- Velg &oslash;velse --</option></select>
+      </div>
+    </div>
+    <div id="proxyInfo" class="proxy-info"></div>
+    <div class="ath-list" id="athList">
+      <div class="loading"><div class="spinner"></div><br>Laster ut&oslash;vere...</div>
+    </div>
+  </div>
+  <div class="main" id="main">
+    <div class="welcome">
+      <div class="ico">&#x1F3C5;</div>
+      <h2>Velg en ut&oslash;ver eller &oslash;velse</h2>
+      <p>S&oslash;k etter ut&oslash;ver i venstre panel, eller velg en &oslash;velse fra listen for &aring; se resultater.</p>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var BASE = 'https://ltmobil.medley.no';
+  var SN = '5326';
+  var cache = {};
+  var athletes = [];
+  var eventOvnrs = [];
+  var currentProxyIndex = null;
+
+  var FALLBACK_EVENTS = [
+    [1,'Øvelse 1. 800m fri, damer'],[2,'Øvelse 2. 800m fri, herrer'],[3,'Øvelse 3. 100m butterfly, damer'],[4,'Øvelse 4. 100m butterfly, herrer'],
+    [5,'Øvelse 5. 200m rygg, damer'],[6,'Øvelse 6. 200m rygg, herrer'],[7,'Øvelse 7. 50m fri, damer - Forsøk'],[8,'Øvelse 8. 50m fri, herrer - Forsøk'],
+    [9,'Øvelse 9. 100m bryst, damer'],[10,'Øvelse 10. 100m bryst, herrer'],[11,'Øvelse 11. 200m fri, damer'],[12,'Øvelse 12. 200m fri, herrer'],
+    [13,'Øvelse 13. 50m rygg, damer - Forsøk'],[14,'Øvelse 14. 50m rygg, herrer - Forsøk'],[15,'Øvelse 15. 100m individuell medley, damer'],[16,'Øvelse 16. 100m individuell medley, herrer'],
+    [17,'Øvelse 17. 4*50m lag medley, mixed'],[18,'Øvelse 18. 50m fri, damer - Finale'],[19,'Øvelse 19. 50m fri, herrer - Finale'],[20,'Øvelse 20. 50m rygg, damer - Finale'],
+    [21,'Øvelse 21. 50m rygg, herrer - Finale'],[22,'Øvelse 22. 400m individuell medley, herrer'],[23,'Øvelse 23. 400m individuell medley, damer'],[24,'Øvelse 24. 400m fri, herrer'],
+    [25,'Øvelse 25. 400m fri, damer'],[26,'Øvelse 26. 50m butterfly, herrer - Forsøk'],[27,'Øvelse 27. 50m butterfly, damer - Forsøk'],[28,'Øvelse 28. 100m rygg, herrer'],
+    [29,'Øvelse 29. 100m rygg, damer'],[30,'Øvelse 30. 200m bryst, herrer'],[31,'Øvelse 31. 200m bryst, damer'],[32,'Øvelse 32. 100m fri, herrer'],
+    [33,'Øvelse 33. 100m fri, damer'],[34,'Øvelse 34. 50m bryst, herrer - Forsøk'],[35,'Øvelse 35. 50m bryst, damer - Forsøk'],[36,'Øvelse 36. 200m individuell medley, herrer'],
+    [37,'Øvelse 37. 200m individuell medley, damer'],[38,'Øvelse 38. 4*50m fri, herrer'],[39,'Øvelse 39. 4*50m fri, damer'],[40,'Øvelse 40. 50m butterfly, herrer - Finale'],
+    [41,'Øvelse 41. 50m butterfly, damer - Finale'],[42,'Øvelse 42. 50m bryst, herrer - Finale'],[43,'Øvelse 43. 50m bryst, damer - Finale']
+  ];
+
+  // Vercel/Netlify-versjon: browseren henter fra samme domene (/api/medley),
+  // og serverless-funksjonen henter HTML fra ltmobil.medley.no. Det unngår CORS-problemet.
+  var PROXIES = [
+    { name:'Egen online API', make:function(full){ return '/api/medley?url=' + encodeURIComponent(full); }, type:'text' }
+  ];
+
+  try {
+    var saved = localStorage.getItem('verdalOpenProxyIndex');
+    if (saved !== null && !isNaN(parseInt(saved, 10))) currentProxyIndex = parseInt(saved, 10);
+  } catch (_) {}
+
+  function isSameOriginAsBase() {
+    return true;
+  }
+
+  function proxyInfo(txt) {
+    var el = document.getElementById('proxyInfo');
+    if (el) el.textContent = txt || '';
+  }
+
+  function absolute(path) {
+    if (/^https?:\/\//i.test(path)) return path;
+    return BASE + path;
+  }
+
+  function normalizeOvnr(v, label) {
+    v = String(v || '');
+    var m = v.match(/[?&]ovnr=(\d+)/i) || v.match(/^(\d+)$/) || String(label || '').match(/Øvelse\s+(\d+)/i);
+    return m ? m[1] : '';
+  }
+
+  function fetchWithTimeout(url, options, ms) {
+    options = options || {};
+    ms = ms || 15000;
+    if (!window.AbortController) return fetch(url, options);
+    var controller = new AbortController();
+    options.signal = controller.signal;
+    var timer = setTimeout(function(){ controller.abort(); }, ms);
+    return fetch(url, options).finally(function(){ clearTimeout(timer); });
+  }
+
+  function candidateProxyIndexes() {
+    var indexes = [];
+    for (var i = 0; i < PROXIES.length; i++) {
+      if (PROXIES[i].direct && !isSameOriginAsBase()) continue;
+      indexes.push(i);
+    }
+    if (currentProxyIndex !== null && indexes.indexOf(currentProxyIndex) >= 0) {
+      indexes = [currentProxyIndex].concat(indexes.filter(function(x){ return x !== currentProxyIndex; }));
+    }
+    return indexes;
+  }
+
+  function looksLikeHtml(text) {
+    if (!text) return false;
+    var sample = text.slice(0, 8000);
+    return sample.indexOf('<html') >= 0 ||
+           sample.indexOf('Livetiming') >= 0 ||
+           sample.indexOf('panResultatlister') >= 0 ||
+           sample.indexOf('ddlEnkeltOvelser') >= 0 ||
+           sample.indexOf('Resultatliste') >= 0;
+  }
+
+  function fetchVia(proxyIndex, fullUrl) {
+    var p = PROXIES[proxyIndex];
+    var url = p.make(fullUrl);
+    return fetchWithTimeout(url, { cache:'no-store', credentials:'omit', mode:'cors' }, 16000)
+      .then(function(r) {
+        if (!r.ok) throw new Error(p.name + ': HTTP ' + r.status);
+        if (p.type === 'json-contents') {
+          return r.json().then(function(j) { return j && (j.contents || j.data || j.body || ''); });
+        }
+        return r.text();
+      })
+      .then(function(text) {
+        if (!looksLikeHtml(text)) {
+          var preview = String(text || '').replace(/\s+/g, ' ').slice(0, 120);
+          throw new Error(p.name + ': fikk ikke HTML' + (preview ? ' (' + preview + ')' : ''));
+        }
+        currentProxyIndex = proxyIndex;
+        try { localStorage.setItem('verdalOpenProxyIndex', String(proxyIndex)); } catch (_) {}
+        proxyInfo(p.direct ? 'Direkte henting fra ltmobil.medley.no' : 'Henter via CORS-proxy: ' + p.name);
+        return text;
+      });
+  }
+
+  function fpSmart(path) {
+    var full = absolute(path);
+    if (cache[full]) return Promise.resolve(cache[full]);
+
+    var indexes = candidateProxyIndexes();
+    var errors = [];
+
+    function tryNext(pos) {
+      if (pos >= indexes.length) {
+        throw new Error('Kunne ikke hente data via online API. Siste feil: ' + errors.join(' | '));
+      }
+      var idx = indexes[pos];
+      return fetchVia(idx, full).catch(function(err) {
+        errors.push(err.message || String(err));
+        return tryNext(pos + 1);
+      });
+    }
+
+    return tryNext(0).then(function(text) {
+      var d = new DOMParser().parseFromString(text, 'text/html');
+      cache[full] = d;
+      return d;
+    });
+  }
+
+  function init() {
+    proxyInfo('Henter via egen online API (/api/medley)');
+
+    fpSmart('/resultater.aspx?stevnenr=' + SN)
+      .then(function(doc) {
+        var evsel = document.getElementById('evsel');
+        var sel = doc.getElementById('ddlEnkeltOvelser');
+        if (!sel) {
+          var selects = doc.querySelectorAll('select');
+          for (var s = 0; s < selects.length; s++) {
+            if (selects[s].textContent.indexOf('Øvelse') >= 0) { sel = selects[s]; break; }
+          }
+        }
+
+        evsel.innerHTML = '<option value="">-- Velg øvelse --</option>';
+        eventOvnrs = [];
+
+        if (sel && sel.options && sel.options.length > 1) {
+          for (var i = 1; i < sel.options.length; i++) {
+            var val = normalizeOvnr(sel.options[i].value, sel.options[i].textContent);
+            if (!val) continue;
+            var o = document.createElement('option');
+            o.value = val;
+            o.textContent = sel.options[i].textContent.trim();
+            evsel.appendChild(o);
+            if (eventOvnrs.indexOf(val) < 0) eventOvnrs.push(val);
+          }
+        }
+
+        if (!eventOvnrs.length) useFallbackEvents();
+        loadAthletes();
+      })
+      .catch(function(err) {
+        useFallbackEvents();
+        document.getElementById('athList').innerHTML =
+          '<div class="empty"><div class="ico">⚠️</div>' +
+          '<p>Kunne ikke hente data.<br><small>' + e(err.message || err) + '</small></p>' +
+          '<p style="margin-top:10px;font-size:.72rem;color:#78909c">Velg en øvelse likevel – listen er lagt inn som reserve.</p></div>';
+      });
+  }
+
+  function useFallbackEvents() {
+    var evsel = document.getElementById('evsel');
+    evsel.innerHTML = '<option value="">-- Velg øvelse --</option>';
+    eventOvnrs = [];
+    FALLBACK_EVENTS.forEach(function(ev) {
+      var o = document.createElement('option');
+      o.value = String(ev[0]);
+      o.textContent = ev[1];
+      evsel.appendChild(o);
+      eventOvnrs.push(String(ev[0]));
+    });
+  }
+
+  function extractNameClubFromLi(li) {
+    var smalls = li.querySelectorAll('small');
+    var vals = [];
+    for (var i = 0; i < smalls.length; i++) {
+      var t = smalls[i].textContent.trim();
+      if (t) vals.push(t);
+    }
+    return {
+      name: vals[0] || '',
+      club: vals.length >= 3 ? vals[2] : (vals[1] || '')
+    };
+  }
+
+  function loadAthletes() {
+    var map = new Map();
+    var nums = eventOvnrs.length ? eventOvnrs.slice() : FALLBACK_EVENTS.map(function(x){ return String(x[0]); });
+    var rendered = false;
+    var idx = 0;
+    var active = 0;
+    var done = 0;
+    var maxParallel = 3;
+
+    function updateProgress() {
+      var el = document.getElementById('athList');
+      if (!rendered && el) {
+        el.innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster utøvere...<br><small>' + done + ' / ' + nums.length + ' øvelser</small></div>';
+      }
+      proxyInfo((currentProxyIndex !== null ? 'Henter via: ' + PROXIES[currentProxyIndex].name + ' · ' : '') + 'Laster utøverliste ' + done + '/' + nums.length);
+    }
+
+    function finishIfDone() {
+      if (done >= nums.length && active === 0) {
+        athletes = Array.from(map.values()).sort(function(a,b) { return a.name.localeCompare(b.name, 'no'); });
+        renderList(athletes);
+        proxyInfo((currentProxyIndex !== null ? 'Henting ferdig via: ' + PROXIES[currentProxyIndex].name : 'Henting ferdig') + ' · ' + athletes.length + ' utøvere');
+      }
+    }
+
+    function pump() {
+      while (active < maxParallel && idx < nums.length) {
+        active++;
+        var n = nums[idx++];
+        fpSmart('/resultater.aspx?stevnenr=' + SN + '&ovnr=' + n)
+          .then(function(doc) {
+            var lis = doc.querySelectorAll('#panResultatlister li');
+            Array.prototype.forEach.call(lis, function(li) {
+              var a = li.querySelector('a');
+              if (!a) return;
+              var href = a.getAttribute('href') || '';
+              var rm = href.match(/resid=(\d+)/);
+              if (!rm) return;
+              var resid = rm[1];
+              var parsed = extractNameClubFromLi(li);
+              if (parsed.name && !map.has(parsed.name)) {
+                map.set(parsed.name, { name: parsed.name, club: parsed.club, resid: resid, pid: null });
+              }
+            });
+            if (!rendered && map.size > 5) {
+              athletes = Array.from(map.values()).sort(function(a,b) { return a.name.localeCompare(b.name, 'no'); });
+              renderList(athletes);
+              rendered = true;
+            }
+          })
+          .catch(function(){})
+          .then(function() {
+            active--;
+            done++;
+            if (!rendered) updateProgress();
+            finishIfDone();
+            pump();
+          });
+      }
+    }
+
+    updateProgress();
+    pump();
+  }
+
+  function renderList(list) {
+    var c = document.getElementById('athList');
+    if (!list.length) {
+      c.innerHTML = '<div class="empty"><div class="ico">👤</div><p>Ingen utøvere funnet</p><p style="margin-top:8px;font-size:.72rem;color:#78909c">Prøv å velge en øvelse direkte.</p></div>';
+      return;
+    }
+    var h = '';
+    list.forEach(function(a) {
+      h += '<div class="ath-item" data-resid="' + e(a.resid) + '"' +
+           (a.pid ? ' data-pid="' + e(a.pid) + '"' : '') + '>' +
+           '<div class="ath-name">' + e(a.name) + '</div>' +
+           '<div class="ath-club">' + e(a.club) + '</div></div>';
+    });
+    c.innerHTML = h;
+    Array.prototype.forEach.call(c.querySelectorAll('.ath-item'), function(el) {
+      el.addEventListener('click', function() {
+        var pid = el.dataset.pid;
+        if (!pid) {
+          el.style.opacity = '0.5';
+          getPid(el.dataset.resid).then(function(p) {
+            el.style.opacity = '';
+            if (p) { el.dataset.pid = p; showAthlete(p, el.dataset.resid); }
+            else showDetail(el.dataset.resid, '', null);
+          });
+        } else {
+          showAthlete(pid, el.dataset.resid);
+        }
+      });
+    });
+  }
+
+  function getPid(resid) {
+    return fpSmart('/resultater.aspx?stevnenr=' + SN + '&resid=' + resid)
+      .then(function(doc) {
+        var links = doc.querySelectorAll('a');
+        for (var i = 0; i < links.length; i++) {
+          var href = links[i].getAttribute('href') || '';
+          var m = href.match(/pid=(\d+)/);
+          if (m) {
+            var ath = athletes.find(function(x) { return x.resid === resid; });
+            if (ath) ath.pid = m[1];
+            return m[1];
+          }
+        }
+        return null;
+      }).catch(function() { return null; });
+  }
+
+  document.getElementById('srch').addEventListener('input', function() {
+    var q = this.value.toLowerCase().trim();
+    renderList(q ? athletes.filter(function(a) {
+      return a.name.toLowerCase().indexOf(q) >= 0 || a.club.toLowerCase().indexOf(q) >= 0;
+    }) : athletes);
+  });
+
+  document.getElementById('evsel').addEventListener('change', function() {
+    if (this.value) showEvent(normalizeOvnr(this.value, this.options[this.selectedIndex].text), this.options[this.selectedIndex].text);
+  });
+
+  function showAthlete(pid, fallbackResid) {
+    Array.prototype.forEach.call(document.querySelectorAll('.ath-item'), function(el) { el.classList.remove('active'); });
+    var item = document.querySelector('[data-pid="' + pid + '"]') ||
+               (fallbackResid ? document.querySelector('[data-resid="' + fallbackResid + '"]') : null);
+    if (item) { item.classList.add('active'); item.scrollIntoView({ block: 'nearest' }); }
+    var main = document.getElementById('main');
+    main.innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster...</div>';
+
+    fpSmart('/resultater.aspx?stevnenr=' + SN + '&pid=' + pid)
+      .then(function(doc) {
+        var nameRaw = doc.getElementById('lblPerson') ? doc.getElementById('lblPerson').textContent.trim() : '';
+        var club    = doc.getElementById('lblKlubb')  ? doc.getElementById('lblKlubb').textContent.trim()  : '';
+        var nm = nameRaw.match(/^(.+?)\s*\((\d{4})\)$/);
+        var name = nm ? nm[1].trim() : nameRaw;
+        var year = nm ? nm[2] : '';
+        var initials = name.split(' ').map(function(w) { return w[0]; }).filter(Boolean).slice(0,2).join('').toUpperCase();
+
+        var lis = doc.querySelectorAll('#panResultatlister li');
+        var rows = [];
+        Array.prototype.forEach.call(lis, function(li) {
+          var a = li.querySelector('a');
+          var href = a ? a.getAttribute('href') || '' : '';
+          var rm = href.match(/resid=(\d+)/);
+          var resid = rm ? rm[1] : null;
+          var cnt = li.querySelector('.ui-li-count');
+          var rank = cnt ? cnt.textContent.trim() : '-';
+          var smalls = li.querySelectorAll('small');
+          var event = '', klasse = '', time = '';
+          if (smalls.length >= 6) {
+            event  = smalls[0].textContent.trim();
+            klasse = smalls[2].textContent.trim();
+            time   = smalls[4].textContent.trim();
+          } else if (smalls.length >= 4) {
+            event  = smalls[0].textContent.trim();
+            klasse = smalls[2].textContent.trim();
+            time   = smalls[3].textContent.trim();
+          } else if (smalls.length >= 2) {
+            event = smalls[0].textContent.trim();
+            time  = smalls[1].textContent.trim();
+          }
+          rows.push({ rank: rank, event: event, klasse: klasse, time: time, resid: resid });
+        });
+
+        var h = '<div class="hero">' +
+                '<div class="avatar">' + e(initials) + '</div>' +
+                '<div class="hero-info"><h2>' + e(name) + '</h2>' +
+                (year ? '<div class="born">Født ' + e(year) + '</div>' : '') +
+                '<div class="club-lbl">🏊 ' + e(club) + '</div></div></div>' +
+                '<div class="card"><div class="card-hdr"><h2>Alle resultater</h2>' +
+                '<span class="badge">' + rows.length + ' øvelse' + (rows.length !== 1 ? 'r' : '') + '</span></div>';
+
+        if (!rows.length) {
+          h += '<div class="empty"><div class="ico">📋</div><p>Ingen resultater</p></div>';
+        } else {
+          rows.forEach(function(r) {
+            var rn = parseInt(r.rank, 10);
+            var rc = rn===1?'r1':rn===2?'r2':rn===3?'r3':'';
+            var tc = ['DNF','DSQ','DNS','DISK'].indexOf(r.time) >= 0 ? 'dnf' : '';
+            h += '<div class="res-row" style="' + (r.resid ? 'cursor:pointer' : '') + '" ' +
+                 (r.resid ? 'data-resid="'+r.resid+'" data-event="'+e(r.event)+'" data-pid="'+pid+'"' : '') + '>' +
+                 '<div class="rank ' + rc + '">' + e(r.rank) + '</div>' +
+                 '<div class="res-info"><div class="res-ev">' + e(r.event) + '</div>' +
+                 (r.klasse ? '<div class="res-cls">' + e(r.klasse) + '</div>' : '') +
+                 '</div><div class="res-time ' + tc + '">' + e(r.time) + '</div></div>';
+          });
+        }
+        h += '</div>';
+        main.innerHTML = h;
+        Array.prototype.forEach.call(main.querySelectorAll('[data-resid][data-pid]'), function(el) {
+          el.addEventListener('click', function() {
+            showDetail(el.dataset.resid, el.dataset.event, el.dataset.pid);
+          });
+        });
+      })
+      .catch(function(err) {
+        document.getElementById('main').innerHTML = '<div class="empty"><p>Feil: ' + e(err.message || err) + '</p></div>';
+      });
+  }
+
+  function showDetail(resid, eventName, backPid) {
+    var main = document.getElementById('main');
+    main.innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster detaljer...</div>';
+
+    fpSmart('/resultater.aspx?stevnenr=' + SN + '&resid=' + resid)
+      .then(function(doc) {
+        var person = doc.getElementById('lblPerson') ? doc.getElementById('lblPerson').textContent.trim() : '';
+        var club   = doc.getElementById('lblKlubb')  ? doc.getElementById('lblKlubb').textContent.trim()  : '';
+
+        if (!backPid) {
+          var links = doc.querySelectorAll('a');
+          for (var i = 0; i < links.length; i++) {
+            var href = links[i].getAttribute('href') || '';
+            var m = href.match(/pid=(\d+)/);
+            if (m) { backPid = m[1]; break; }
+          }
+        }
+
+        var pan = doc.getElementById('panResultatlister');
+        var sluttid = '', fina = '', pameld = '';
+        var cumSplits = [], lapSplits = [];
+
+        if (pan) {
+          var bTag = pan.querySelector('b');
+          if (bTag) {
+            var parts = bTag.innerHTML.split(/<br\s*\/?>/i)
+              .map(function(p) { return p.replace(/<[^>]+>/g, '').trim(); })
+              .filter(function(p) { return p; });
+            parts.forEach(function(p) {
+              if (p.indexOf('Sluttid:') === 0) sluttid = p.replace('Sluttid:', '').trim();
+              else if (p.indexOf('FINA') === 0) fina = p.replace(/FINA[^:]*:/, '').trim();
+              else if (p.indexOf('Påmeldingstid:') === 0 || (p.indexOf('P') === 0 && p.indexOf('meldingstid:') > 0)) pameld = p.replace(/P[^:]+:/, '').trim();
+            });
+          }
+          var grids = pan.querySelectorAll('.ui-grid-c');
+          Array.prototype.forEach.call(grids, function(g, i) {
+            var vals = Array.prototype.slice.call(g.querySelectorAll('small'))
+              .map(function(s) { return s.textContent.trim(); })
+              .filter(function(t) { return t; });
+            if (i === 0) cumSplits = vals; else lapSplits = vals;
+          });
+        }
+
+        var h = (backPid ? '<button class="back-btn" id="bb">← Tilbake til utøver</button>' : '') +
+                '<div class="card"><div class="card-hdr"><h2>' + e(eventName || 'Detaljresultat') + '</h2></div>' +
+                '<div style="padding:15px">' +
+                '<div style="font-size:1.05rem;font-weight:700;color:#e0e7ef;margin-bottom:4px;">' + e(person) + '</div>' +
+                '<div style="font-size:0.84rem;color:#4fc3f7;margin-bottom:12px;">🏊 ' + e(club) + '</div>';
+
+        if (sluttid || fina || pameld) {
+          h += '<div class="stats-row">';
+          if (sluttid) h += '<div class="stat-item"><div class="stat-lbl">Sluttid</div><div class="stat-val" style="color:#4fc3f7;font-size:1.25rem;font-family:monospace">' + e(sluttid) + '</div></div>';
+          if (fina) h += '<div class="stat-item"><div class="stat-lbl">FINA-poeng</div><div class="stat-val">' + e(fina) + '</div></div>';
+          if (pameld) h += '<div class="stat-item"><div class="stat-lbl">Påmeldingstid</div><div class="stat-val" style="font-family:monospace">' + e(pameld) + '</div></div>';
+          h += '</div>';
+        }
+
+        if (cumSplits.length > 0) {
+          h += '<div class="splits-wrap"><div class="splits-title">Passeringstider (kumulativt)</div><div class="splits-grid">';
+          cumSplits.forEach(function(c) { h += '<div class="split-cell" style="color:#4fc3f7">' + e(c) + '</div>'; });
+          h += '</div></div>';
+        }
+        if (lapSplits.length > 0) {
+          h += '<div class="splits-wrap" style="padding-top:0"><div class="splits-title">Rundetider</div><div class="splits-grid">';
+          lapSplits.forEach(function(c) { h += '<div class="split-cell">' + e(c) + '</div>'; });
+          h += '</div></div>';
+        }
+
+        h += '</div></div>';
+        main.innerHTML = h;
+        if (backPid) {
+          var bb = main.querySelector('#bb');
+          if (bb) bb.addEventListener('click', function() { showAthlete(backPid); });
+        }
+      })
+      .catch(function(err) {
+        document.getElementById('main').innerHTML = '<div class="empty"><p>Feil: ' + e(err.message || err) + '</p></div>';
+      });
+  }
+
+  function showEvent(ovnr, eventName) {
+    var main = document.getElementById('main');
+    main.innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster øvelse...</div>';
+    Array.prototype.forEach.call(document.querySelectorAll('.ath-item'), function(el) { el.classList.remove('active'); });
+
+    fpSmart('/resultater.aspx?stevnenr=' + SN + '&ovnr=' + ovnr)
+      .then(function(doc) {
+        var pan = doc.getElementById('panResultatlister');
+        if (!pan) { main.innerHTML = '<div class="empty"><p>Ingen resultater</p></div>'; return; }
+
+        var h = '<div class="card"><div class="card-hdr"><h2>' + e(eventName) + '</h2></div>';
+        var kids = Array.prototype.slice.call(pan.children);
+        var i = 0;
+        while (i < kids.length) {
+          if (kids[i].tagName === 'H3') {
+            h += '<div class="cls-hdr">' + e(kids[i].textContent.trim()) + '</div>';
+            i++;
+            if (i < kids.length && kids[i].tagName === 'UL') {
+              Array.prototype.forEach.call(kids[i].querySelectorAll('li'), function(li) {
+                var a = li.querySelector('a');
+                var href = a ? a.getAttribute('href') || '' : '';
+                var rm = href.match(/resid=(\d+)/);
+                var resid = rm ? rm[1] : null;
+                var cnt = li.querySelector('.ui-li-count');
+                var rank = cnt ? cnt.textContent.trim() : '-';
+                var smalls = li.querySelectorAll('small');
+                var name='', club='', time='';
+                if (smalls.length >= 6) {
+                  name=smalls[0].textContent.trim(); club=smalls[2].textContent.trim(); time=smalls[4].textContent.trim();
+                } else if (smalls.length >= 4) {
+                  name=smalls[0].textContent.trim(); club=smalls[2].textContent.trim(); time=smalls[3].textContent.trim();
+                } else if (smalls.length >= 3) {
+                  name=smalls[0].textContent.trim(); club=smalls[1].textContent.trim(); time=smalls[2].textContent.trim();
+                } else if (smalls.length >= 2) {
+                  name=smalls[0].textContent.trim(); time=smalls[1].textContent.trim();
+                }
+                var rn = parseInt(rank, 10);
+                var rc = rn===1?'r1':rn===2?'r2':rn===3?'r3':'';
+                var tc = ['DNF','DSQ','DNS','DISK'].indexOf(time) >= 0 ? 'dnf' : '';
+                h += '<div class="res-row" style="' + (resid ? 'cursor:pointer' : '') + '" ' +
+                     (resid ? 'data-resid2="' + resid + '"' : '') + '>' +
+                     '<div class="rank ' + rc + '">' + e(rank) + '</div>' +
+                     '<div class="res-info"><div class="res-ev">' + e(name) + '</div>' +
+                     (club ? '<div class="res-cls">' + e(club) + '</div>' : '') +
+                     '</div><div class="res-time ' + tc + '">' + e(time) + '</div></div>';
+              });
+              i++;
+            }
+          } else { i++; }
+        }
+        h += '</div>';
+        main.innerHTML = h;
+        Array.prototype.forEach.call(main.querySelectorAll('[data-resid2]'), function(el) {
+          el.addEventListener('click', function() {
+            var resid = el.dataset.resid2;
+            getPid(resid).then(function(pid) {
+              if (pid) showAthlete(pid, resid);
+              else showDetail(resid, eventName, null);
+            });
+          });
+        });
+      })
+      .catch(function(err) {
+        document.getElementById('main').innerHTML = '<div class="empty"><p>Feil: ' + e(err.message || err) + '</p></div>';
+      });
+  }
+
+  function e(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  init();
+})();
+
+</script>
+</body>
+</html>
