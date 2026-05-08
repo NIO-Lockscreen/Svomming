@@ -110,6 +110,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
     </div>
     <div class="sb-sec">
       <h3>Velg stevne</h3>
+      <input class="search" id="meetSearch" placeholder="Filtrer stevner..." autocomplete="off" disabled style="margin-bottom:7px">
       <div class="evsel-wrap">
         <select class="evsel" id="meetSel"><option value="">-- Velg stevne --</option></select>
       </div>
@@ -147,6 +148,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
   var currentMeetNo = '';
   var currentMeetName = '';
   var currentYear = '';
+  var allMeetOptions = [];
   var currentProxyIndex = null;
 
   // Krever at du har /api/medley i prosjektet ditt.
@@ -411,6 +413,54 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
     try { localStorage.setItem(localMeetListKey(year), JSON.stringify({ saved: Date.now(), meets: meets })); } catch (_) {}
   }
 
+  function normalizeMeetSearchText(s) {
+    var txt = String(s || '')
+      .toLowerCase()
+      .replace(/æ/g, 'ae')
+      .replace(/ø/g, 'o')
+      .replace(/å/g, 'a');
+    if (txt.normalize) txt = txt.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return txt.replace(/\s+/g, ' ').trim();
+  }
+
+  function renderMeetOptions(filterText) {
+    var meetSel = byId('meetSel');
+    if (!meetSel) return;
+    var currentValue = meetSel.value;
+    var q = normalizeMeetSearchText(filterText);
+    var filtered = allMeetOptions.filter(function(m) {
+      return !q || normalizeMeetSearchText(m.label).indexOf(q) >= 0 || String(m.sn).indexOf(q) >= 0;
+    });
+
+    meetSel.innerHTML = '<option value="">-- Velg stevne --</option>';
+    if (!filtered.length && q) {
+      var none = document.createElement('option');
+      none.value = '';
+      none.textContent = 'Ingen treff på filtreringen';
+      none.disabled = true;
+      meetSel.appendChild(none);
+    } else {
+      filtered.forEach(function(m) {
+        var o = document.createElement('option');
+        o.value = m.sn;
+        o.textContent = m.label;
+        meetSel.appendChild(o);
+      });
+    }
+
+    if (currentValue && filtered.some(function(m){ return m.sn === currentValue; })) {
+      meetSel.value = currentValue;
+    } else {
+      meetSel.value = '';
+    }
+
+    if (q && allMeetOptions.length) {
+      meetNote(filtered.length + ' treff av ' + allMeetOptions.length + ' stevner.');
+    } else if (allMeetOptions.length) {
+      meetNote(allMeetOptions.length + ' stevner funnet for ' + currentYear + '.');
+    }
+  }
+
   function scanMeetNumbersForYear(year, onProgress) {
     year = String(year);
     var stored = getStoredMeetList(year);
@@ -496,6 +546,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
     resetForMeetChange();
 
     var meetSel = byId('meetSel');
+    var meetSearch = byId('meetSearch');
+    allMeetOptions = [];
+    if (meetSearch) {
+      meetSearch.value = '';
+      meetSearch.disabled = true;
+    }
     meetSel.disabled = true;
     meetSel.innerHTML = '<option value="">Laster stevner for ' + e(currentYear) + '...</option>';
     meetNote('Henter stevneoversikt for ' + currentYear + '...');
@@ -515,15 +571,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
       .then(function(meets) {
         if (token !== meetLoadToken) return;
         if (!meets.length) throw new Error('Fant ingen stevner for ' + currentYear + '.');
-        meetSel.innerHTML = '<option value="">-- Velg stevne --</option>';
-        meets.forEach(function(m) {
-          var o = document.createElement('option');
-          o.value = m.sn;
-          o.textContent = m.label;
-          meetSel.appendChild(o);
-        });
+        allMeetOptions = meets.slice();
         meetSel.disabled = false;
-        meetNote(meets.length + ' stevner funnet for ' + currentYear + '.');
+        if (meetSearch) meetSearch.disabled = false;
+        renderMeetOptions('');
 
         var wantedMeet = new URLSearchParams(window.location.search).get('stevnenr') || '';
         try { wantedMeet = wantedMeet || localStorage.getItem('swimSearchMeet_' + currentYear) || ''; } catch (_) {}
@@ -538,6 +589,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
       .catch(function(err) {
         if (token !== meetLoadToken) return;
         meetSel.innerHTML = '<option value="">Kunne ikke hente stevner</option>';
+        if (meetSearch) meetSearch.disabled = true;
         meetNote('Feil: ' + (err.message || err));
         byId('athList').innerHTML = '<div class="empty"><div class="ico">⚠️</div><p>Kunne ikke hente stevner.<br><small>' + e(err.message || err) + '</small></p></div>';
       });
@@ -729,6 +781,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
     renderList(q ? athletes.filter(function(a) {
       return a.name.toLowerCase().indexOf(q) >= 0 || a.club.toLowerCase().indexOf(q) >= 0;
     }) : athletes);
+  });
+
+  byId('meetSearch').addEventListener('input', function() {
+    renderMeetOptions(this.value);
   });
 
   byId('yearSel').addEventListener('change', function() {
