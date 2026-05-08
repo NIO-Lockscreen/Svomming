@@ -10,6 +10,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
 .hdr{background:linear-gradient(135deg,#1a3a5c,#0d2137);padding:14px 22px;border-bottom:2px solid #2a6db5;display:flex;align-items:center;gap:14px}
 .hdr-logo{font-size:26px}
 .hdr h1{font-size:1.15rem;font-weight:700;color:#4fc3f7}
+.hdr .sub{font-size:0.76rem;color:#78909c}
 .body{display:flex;height:calc(100vh - 58px)}
 .sidebar{width:260px;min-width:220px;background:#131f2d;border-right:1px solid #1e3a5c;overflow-y:auto;display:flex;flex-direction:column}
 .sb-sec{padding:11px 13px;border-bottom:1px solid #1e3a5c}
@@ -69,20 +70,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
 .back-btn{background:#1e2d3e;border:1px solid #2a4a6a;color:#90caf9;padding:6px 15px;border-radius:7px;cursor:pointer;margin-bottom:14px;font-size:0.81rem;display:inline-block}
 .back-btn:hover{background:#1a3a5c}
 .proxy-info{font-size:0.7rem;color:#546e7a;padding:4px 13px 8px;font-style:italic}
-.meet-note{font-size:0.72rem;color:#78909c;padding:7px 13px;border-bottom:1px solid #1e3a5c;line-height:1.35}
-.evsel:disabled,.search:disabled{opacity:.55;cursor:not-allowed}
-
-.best-box{margin-top:12px;background:#0d1b2a;border:1px solid #1e3a5c;border-radius:10px;padding:11px}
-.best-title{font-size:.78rem;color:#90caf9;font-weight:700;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
-.best-controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
-.best-controls select{flex:1;min-width:160px}
-.small-btn{background:#1565c0;border:1px solid #2a6db5;color:#e3f2fd;padding:7px 12px;border-radius:7px;cursor:pointer;font-size:.8rem;font-weight:700}
-.small-btn:hover{background:#1e88e5}
-.small-btn:disabled{opacity:.55;cursor:not-allowed}
-.best-status{font-size:.78rem;color:#b0bec5;margin-top:8px;line-height:1.45}
-.best-result{background:#132536;border:1px solid #2a4a6a;border-radius:8px;padding:9px;margin-top:8px}
-.best-result strong{color:#4fc3f7;font-family:monospace;font-size:1.05rem}
-.best-meta{font-size:.74rem;color:#78909c;margin-top:4px}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:#0f1923}
 ::-webkit-scrollbar-thumb{background:#1e3a5c;border-radius:3px}
@@ -98,87 +85,80 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
   <div class="hdr-logo">&#x1F3CA;</div>
   <div>
     <h1>Swim search</h1>
+    <div class="sub">Verdal Open 2025 &ndash; Livetiming &ndash; ltmobil.medley.no</div>
   </div>
 </div>
 <div class="body">
   <div class="sidebar">
     <div class="sb-sec">
-      <h3>Velg årstall</h3>
-      <div class="evsel-wrap">
-        <select class="evsel" id="yearSel"></select>
-      </div>
-    </div>
-    <div class="sb-sec">
-      <h3>Velg stevne</h3>
-      <div class="evsel-wrap">
-        <select class="evsel" id="meetSel"><option value="">-- Velg stevne --</option></select>
-      </div>
-    </div>
-    <div class="sb-sec">
-      <h3>Søk utøver</h3>
+      <h3>S&oslash;k ut&oslash;ver</h3>
       <input class="search" id="srch" placeholder="Navn eller klubb..." autocomplete="off">
     </div>
     <div class="sb-sec">
-      <h3>Velg øvelse</h3>
+      <h3>Velg &oslash;velse</h3>
       <div class="evsel-wrap">
-        <select class="evsel" id="evsel"><option value="">-- Velg øvelse --</option></select>
+        <select class="evsel" id="evsel"><option value="">-- Velg &oslash;velse --</option></select>
       </div>
     </div>
-    <div id="meetNote" class="meet-note"></div>
     <div id="proxyInfo" class="proxy-info"></div>
     <div class="ath-list" id="athList">
-      <div class="empty"><div class="ico">&#x1F3CA;</div><p>Velg stevne først</p></div>
+      <div class="loading"><div class="spinner"></div><br>Laster ut&oslash;vere...</div>
     </div>
   </div>
   <div class="main" id="main">
     <div class="welcome">
       <div class="ico">&#x1F3C5;</div>
-      <h2>Velg årstall og stevne</h2>
-      <p>Velg årstall, deretter stevne. Når stevnet er lastet kan du søke etter utøver eller velge øvelse.</p>
+      <h2>Velg en ut&oslash;ver eller &oslash;velse</h2>
+      <p>S&oslash;k etter ut&oslash;ver i venstre panel, eller velg en &oslash;velse fra listen for &aring; se resultater.</p>
     </div>
   </div>
 </div>
 <script>
 (function(){
   var BASE = 'https://ltmobil.medley.no';
+  var SN = '5326';
   var cache = {};
   var athletes = [];
   var eventOvnrs = [];
-  var currentMeetNo = '';
-  var currentMeetName = '';
-  var currentYear = '';
   var currentProxyIndex = null;
 
-  // Krever at du har /api/medley i prosjektet ditt.
-  // Browseren henter fra samme domene, og API-filen henter HTML fra ltmobil.medley.no.
+  var FALLBACK_EVENTS = [
+    [1,'Øvelse 1. 800m fri, damer'],[2,'Øvelse 2. 800m fri, herrer'],[3,'Øvelse 3. 100m butterfly, damer'],[4,'Øvelse 4. 100m butterfly, herrer'],
+    [5,'Øvelse 5. 200m rygg, damer'],[6,'Øvelse 6. 200m rygg, herrer'],[7,'Øvelse 7. 50m fri, damer - Forsøk'],[8,'Øvelse 8. 50m fri, herrer - Forsøk'],
+    [9,'Øvelse 9. 100m bryst, damer'],[10,'Øvelse 10. 100m bryst, herrer'],[11,'Øvelse 11. 200m fri, damer'],[12,'Øvelse 12. 200m fri, herrer'],
+    [13,'Øvelse 13. 50m rygg, damer - Forsøk'],[14,'Øvelse 14. 50m rygg, herrer - Forsøk'],[15,'Øvelse 15. 100m individuell medley, damer'],[16,'Øvelse 16. 100m individuell medley, herrer'],
+    [17,'Øvelse 17. 4*50m lag medley, mixed'],[18,'Øvelse 18. 50m fri, damer - Finale'],[19,'Øvelse 19. 50m fri, herrer - Finale'],[20,'Øvelse 20. 50m rygg, damer - Finale'],
+    [21,'Øvelse 21. 50m rygg, herrer - Finale'],[22,'Øvelse 22. 400m individuell medley, herrer'],[23,'Øvelse 23. 400m individuell medley, damer'],[24,'Øvelse 24. 400m fri, herrer'],
+    [25,'Øvelse 25. 400m fri, damer'],[26,'Øvelse 26. 50m butterfly, herrer - Forsøk'],[27,'Øvelse 27. 50m butterfly, damer - Forsøk'],[28,'Øvelse 28. 100m rygg, herrer'],
+    [29,'Øvelse 29. 100m rygg, damer'],[30,'Øvelse 30. 200m bryst, herrer'],[31,'Øvelse 31. 200m bryst, damer'],[32,'Øvelse 32. 100m fri, herrer'],
+    [33,'Øvelse 33. 100m fri, damer'],[34,'Øvelse 34. 50m bryst, herrer - Forsøk'],[35,'Øvelse 35. 50m bryst, damer - Forsøk'],[36,'Øvelse 36. 200m individuell medley, herrer'],
+    [37,'Øvelse 37. 200m individuell medley, damer'],[38,'Øvelse 38. 4*50m fri, herrer'],[39,'Øvelse 39. 4*50m fri, damer'],[40,'Øvelse 40. 50m butterfly, herrer - Finale'],
+    [41,'Øvelse 41. 50m butterfly, damer - Finale'],[42,'Øvelse 42. 50m bryst, herrer - Finale'],[43,'Øvelse 43. 50m bryst, damer - Finale']
+  ];
+
+  // Vercel/Netlify-versjon: browseren henter fra samme domene (/api/medley),
+  // og serverless-funksjonen henter HTML fra ltmobil.medley.no. Det unngår CORS-problemet.
   var PROXIES = [
     { name:'Egen online API', make:function(full){ return '/api/medley?url=' + encodeURIComponent(full); }, type:'text' }
   ];
 
   try {
-    var saved = localStorage.getItem('swimSearchProxyIndex');
+    var saved = localStorage.getItem('verdalOpenProxyIndex');
     if (saved !== null && !isNaN(parseInt(saved, 10))) currentProxyIndex = parseInt(saved, 10);
   } catch (_) {}
 
-  function byId(id){ return document.getElementById(id); }
-
-  function proxyInfo(txt) {
-    var el = byId('proxyInfo');
-    if (el) el.textContent = txt || '';
+  function isSameOriginAsBase() {
+    return true;
   }
 
-  function meetNote(txt) {
-    var el = byId('meetNote');
+  function proxyInfo(txt) {
+    var el = document.getElementById('proxyInfo');
     if (el) el.textContent = txt || '';
   }
 
   function absolute(path) {
     if (/^https?:\/\//i.test(path)) return path;
     return BASE + path;
-  }
-
-  function cleanText(s) {
-    return String(s || '').replace(/\s+/g, ' ').trim();
   }
 
   function normalizeOvnr(v, label) {
@@ -189,7 +169,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
 
   function fetchWithTimeout(url, options, ms) {
     options = options || {};
-    ms = ms || 18000;
+    ms = ms || 15000;
     if (!window.AbortController) return fetch(url, options);
     var controller = new AbortController();
     options.signal = controller.signal;
@@ -199,7 +179,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
 
   function candidateProxyIndexes() {
     var indexes = [];
-    for (var i = 0; i < PROXIES.length; i++) indexes.push(i);
+    for (var i = 0; i < PROXIES.length; i++) {
+      if (PROXIES[i].direct && !isSameOriginAsBase()) continue;
+      indexes.push(i);
+    }
     if (currentProxyIndex !== null && indexes.indexOf(currentProxyIndex) >= 0) {
       indexes = [currentProxyIndex].concat(indexes.filter(function(x){ return x !== currentProxyIndex; }));
     }
@@ -208,31 +191,33 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
 
   function looksLikeHtml(text) {
     if (!text) return false;
-    var sample = String(text).slice(0, 10000);
+    var sample = text.slice(0, 8000);
     return sample.indexOf('<html') >= 0 ||
            sample.indexOf('Livetiming') >= 0 ||
            sample.indexOf('panResultatlister') >= 0 ||
            sample.indexOf('ddlEnkeltOvelser') >= 0 ||
-           sample.indexOf('Stevner') >= 0 ||
            sample.indexOf('Resultatliste') >= 0;
   }
 
   function fetchVia(proxyIndex, fullUrl) {
     var p = PROXIES[proxyIndex];
     var url = p.make(fullUrl);
-    return fetchWithTimeout(url, { cache:'no-store', credentials:'omit', mode:'cors' }, 18000)
+    return fetchWithTimeout(url, { cache:'no-store', credentials:'omit', mode:'cors' }, 16000)
       .then(function(r) {
         if (!r.ok) throw new Error(p.name + ': HTTP ' + r.status);
+        if (p.type === 'json-contents') {
+          return r.json().then(function(j) { return j && (j.contents || j.data || j.body || ''); });
+        }
         return r.text();
       })
       .then(function(text) {
         if (!looksLikeHtml(text)) {
-          var preview = String(text || '').replace(/\s+/g, ' ').slice(0, 140);
+          var preview = String(text || '').replace(/\s+/g, ' ').slice(0, 120);
           throw new Error(p.name + ': fikk ikke HTML' + (preview ? ' (' + preview + ')' : ''));
         }
         currentProxyIndex = proxyIndex;
-        try { localStorage.setItem('swimSearchProxyIndex', String(proxyIndex)); } catch (_) {}
-        proxyInfo('Henter via egen online API (/api/medley)');
+        try { localStorage.setItem('verdalOpenProxyIndex', String(proxyIndex)); } catch (_) {}
+        proxyInfo(p.direct ? 'Direkte henting fra ltmobil.medley.no' : 'Henter via CORS-proxy: ' + p.name);
         return text;
       });
   }
@@ -246,7 +231,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
 
     function tryNext(pos) {
       if (pos >= indexes.length) {
-        throw new Error('Kunne ikke hente data. Siste feil: ' + errors.join(' | '));
+        throw new Error('Kunne ikke hente data via online API. Siste feil: ' + errors.join(' | '));
       }
       var idx = indexes[pos];
       return fetchVia(idx, full).catch(function(err) {
@@ -262,278 +247,142 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
     });
   }
 
-  function resetForMeetChange() {
-    athletes = [];
-    eventOvnrs = [];
-    byId('srch').value = '';
-    byId('athList').innerHTML = '<div class="empty"><div class="ico">🏊</div><p>Velg stevne først</p></div>';
-    byId('evsel').innerHTML = '<option value="">-- Velg øvelse --</option>';
-    byId('evsel').disabled = true;
-    byId('main').innerHTML = '<div class="welcome"><div class="ico">🏅</div><h2>Velg årstall og stevne</h2><p>Velg årstall, deretter stevne. Når stevnet er lastet kan du søke etter utøver eller velge øvelse.</p></div>';
-  }
+  function init() {
+    proxyInfo('Henter via egen online API (/api/medley)');
 
-  function initYearSelect() {
-    var ys = byId('yearSel');
-    var now = new Date().getFullYear();
-    var maxYear = Math.max(2026, now);
-    var wanted = '';
-    try { wanted = localStorage.getItem('swimSearchYear') || ''; } catch (_) {}
-    var urlYear = new URLSearchParams(window.location.search).get('year');
-    if (urlYear && /^\d{4}$/.test(urlYear)) wanted = urlYear;
-    if (!wanted) wanted = String(maxYear);
-
-    ys.innerHTML = '';
-    for (var y = maxYear; y >= 2010; y--) {
-      var o = document.createElement('option');
-      o.value = String(y);
-      o.textContent = String(y);
-      if (String(y) === wanted) o.selected = true;
-      ys.appendChild(o);
-    }
-    currentYear = ys.value;
-  }
-
-  function yearCandidatePaths(year) {
-    return [
-      '/',
-      '/default.aspx',
-      '/default.aspx?aar=' + encodeURIComponent(year),
-      '/default.aspx?ar=' + encodeURIComponent(year),
-      '/default.aspx?year=' + encodeURIComponent(year),
-      '/default.aspx?y=' + encodeURIComponent(year),
-      '/default.aspx?yyyy=' + encodeURIComponent(year)
-    ];
-  }
-
-  function parseMeets(doc, year) {
-    var map = new Map();
-    var links = doc.querySelectorAll('a[href]');
-    links.forEach(function(a) {
-      var href = a.getAttribute('href') || '';
-      var m = href.match(/stevnenr=(\d+)/i);
-      if (!m) return;
-      var sn = m[1];
-      if (!sn || sn === '0') return;
-
-      var label = '';
-      var li = a.closest ? a.closest('li') : null;
-      if (li) label = cleanText(li.textContent);
-      if (!label) {
-        var p = a.parentElement;
-        label = p ? cleanText(p.textContent) : cleanText(a.textContent);
-      }
-      label = label
-        .replace(/\bDetaljer\b.*$/i, '')
-        .replace(/\bMobil\b.*$/i, '')
-        .replace(/\bLivetiming\b.*$/i, '')
-        .trim();
-
-      if (!label || label.length < 3) label = cleanText(a.textContent);
-      if (!label || /^Stevneoversikt$/i.test(label)) return;
-      if (year && label.indexOf(String(year)) === -1) return;
-
-      if (!map.has(sn)) map.set(sn, { sn: sn, label: label });
-    });
-    return Array.from(map.values());
-  }
-
-  function loadMeetsForYear(year) {
-    currentYear = String(year);
-    try { localStorage.setItem('swimSearchYear', currentYear); } catch (_) {}
-    resetForMeetChange();
-
-    var meetSel = byId('meetSel');
-    meetSel.disabled = true;
-    meetSel.innerHTML = '<option value="">Laster stevner for ' + e(currentYear) + '...</option>';
-    meetNote('Henter stevneoversikt for ' + currentYear + '...');
-
-    var paths = yearCandidatePaths(currentYear);
-    var tried = [];
-
-    function tryPath(i) {
-      if (i >= paths.length) {
-        throw new Error('Fant ikke stevneliste for ' + currentYear + '. Prøv et annet årstall.');
-      }
-      var path = paths[i];
-      tried.push(path);
-      return fpSmart(path)
-        .then(function(doc) {
-          var meets = parseMeets(doc, currentYear);
-          if (!meets.length) return tryPath(i + 1);
-          return meets;
-        })
-        .catch(function(err) {
-          if (i + 1 < paths.length) return tryPath(i + 1);
-          throw err;
-        });
-    }
-
-    return tryPath(0)
-      .then(function(meets) {
-        meetSel.innerHTML = '<option value="">-- Velg stevne --</option>';
-        meets.forEach(function(m) {
-          var o = document.createElement('option');
-          o.value = m.sn;
-          o.textContent = m.label;
-          meetSel.appendChild(o);
-        });
-        meetSel.disabled = false;
-        meetNote(meets.length + ' stevner funnet for ' + currentYear + '.');
-
-        var wantedMeet = new URLSearchParams(window.location.search).get('stevnenr') || '';
-        try { wantedMeet = wantedMeet || localStorage.getItem('swimSearchMeet_' + currentYear) || ''; } catch (_) {}
-        if (wantedMeet) {
-          var opt = Array.from(meetSel.options).find(function(o){ return o.value === wantedMeet; });
-          if (opt) {
-            meetSel.value = wantedMeet;
-            loadMeet(wantedMeet, opt.textContent);
+    fpSmart('/resultater.aspx?stevnenr=' + SN)
+      .then(function(doc) {
+        var evsel = document.getElementById('evsel');
+        var sel = doc.getElementById('ddlEnkeltOvelser');
+        if (!sel) {
+          var selects = doc.querySelectorAll('select');
+          for (var s = 0; s < selects.length; s++) {
+            if (selects[s].textContent.indexOf('Øvelse') >= 0) { sel = selects[s]; break; }
           }
         }
-      })
-      .catch(function(err) {
-        meetSel.innerHTML = '<option value="">Kunne ikke hente stevner</option>';
-        meetNote('Feil: ' + (err.message || err));
-        byId('athList').innerHTML = '<div class="empty"><div class="ico">⚠️</div><p>Kunne ikke hente stevner.<br><small>' + e(err.message || err) + '</small></p></div>';
-      });
-  }
 
-  function parseEventOptions(doc) {
-    var evsel = byId('evsel');
-    evsel.innerHTML = '<option value="">-- Velg øvelse --</option>';
-    var seen = new Set();
-    var result = [];
+        evsel.innerHTML = '<option value="">-- Velg øvelse --</option>';
+        eventOvnrs = [];
 
-    function addEvent(ovnr, label) {
-      ovnr = normalizeOvnr(ovnr, label);
-      label = cleanText(label);
-      if (!ovnr || seen.has(ovnr)) return;
-      if (!label || !/Øvelse/i.test(label)) label = 'Øvelse ' + ovnr;
-      seen.add(ovnr);
-      result.push(ovnr);
-      var o = document.createElement('option');
-      o.value = ovnr;
-      o.textContent = label;
-      evsel.appendChild(o);
-    }
-
-    var sel = doc.getElementById('ddlEnkeltOvelser');
-    if (!sel) {
-      var selects = doc.querySelectorAll('select');
-      for (var s = 0; s < selects.length; s++) {
-        if (selects[s].textContent.indexOf('Øvelse') >= 0) { sel = selects[s]; break; }
-      }
-    }
-    if (sel) {
-      Array.from(sel.options).forEach(function(opt) {
-        addEvent(opt.value, opt.textContent);
-      });
-    }
-
-    doc.querySelectorAll('a[href*="ovnr="]').forEach(function(a) {
-      addEvent(a.getAttribute('href') || '', a.textContent || '');
-    });
-
-    eventOvnrs = result;
-    evsel.disabled = eventOvnrs.length === 0;
-    return result;
-  }
-
-  function loadMeet(sn, label) {
-    currentMeetNo = String(sn || '');
-    currentMeetName = cleanText(label || '');
-    if (!currentMeetNo) return;
-
-    try { localStorage.setItem('swimSearchMeet_' + currentYear, currentMeetNo); } catch (_) {}
-    cache = {}; // Bytt stevne: unngå gamle HTML-dokumenter.
-    athletes = [];
-    eventOvnrs = [];
-    byId('srch').value = '';
-    byId('evsel').innerHTML = '<option value="">Laster øvelser...</option>';
-    byId('evsel').disabled = true;
-    byId('athList').innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster utøvere...</div>';
-    byId('main').innerHTML = '<div class="welcome"><div class="ico">🏊</div><h2>' + e(currentMeetName) + '</h2><p>Stevnet lastes. Du kan snart søke etter utøver eller velge øvelse.</p></div>';
-    meetNote(currentMeetName ? currentMeetName : ('Stevne ' + currentMeetNo));
-
-    fpSmart('/resultater.aspx?stevnenr=' + encodeURIComponent(currentMeetNo))
-      .then(function(doc) {
-        parseEventOptions(doc);
-        if (!eventOvnrs.length) {
-          byId('athList').innerHTML = '<div class="empty"><div class="ico">📋</div><p>Fant ingen øvelser for dette stevnet.</p></div>';
-          byId('main').innerHTML = '<div class="empty"><div class="ico">📋</div><p>Ingen øvelser funnet.</p></div>';
-          return;
+        if (sel && sel.options && sel.options.length > 1) {
+          for (var i = 1; i < sel.options.length; i++) {
+            var val = normalizeOvnr(sel.options[i].value, sel.options[i].textContent);
+            if (!val) continue;
+            var o = document.createElement('option');
+            o.value = val;
+            o.textContent = sel.options[i].textContent.trim();
+            evsel.appendChild(o);
+            if (eventOvnrs.indexOf(val) < 0) eventOvnrs.push(val);
+          }
         }
+
+        if (!eventOvnrs.length) useFallbackEvents();
         loadAthletes();
       })
       .catch(function(err) {
-        byId('athList').innerHTML = '<div class="empty"><div class="ico">⚠️</div><p>Kunne ikke hente stevnedata.<br><small>' + e(err.message || err) + '</small></p></div>';
+        useFallbackEvents();
+        document.getElementById('athList').innerHTML =
+          '<div class="empty"><div class="ico">⚠️</div>' +
+          '<p>Kunne ikke hente data.<br><small>' + e(err.message || err) + '</small></p>' +
+          '<p style="margin-top:10px;font-size:.72rem;color:#78909c">Velg en øvelse likevel – listen er lagt inn som reserve.</p></div>';
       });
+  }
+
+  function useFallbackEvents() {
+    var evsel = document.getElementById('evsel');
+    evsel.innerHTML = '<option value="">-- Velg øvelse --</option>';
+    eventOvnrs = [];
+    FALLBACK_EVENTS.forEach(function(ev) {
+      var o = document.createElement('option');
+      o.value = String(ev[0]);
+      o.textContent = ev[1];
+      evsel.appendChild(o);
+      eventOvnrs.push(String(ev[0]));
+    });
+  }
+
+  function extractNameClubFromLi(li) {
+    var smalls = li.querySelectorAll('small');
+    var vals = [];
+    for (var i = 0; i < smalls.length; i++) {
+      var t = smalls[i].textContent.trim();
+      if (t) vals.push(t);
+    }
+    return {
+      name: vals[0] || '',
+      club: vals.length >= 3 ? vals[2] : (vals[1] || '')
+    };
   }
 
   function loadAthletes() {
     var map = new Map();
-    var nums = eventOvnrs.slice();
+    var nums = eventOvnrs.length ? eventOvnrs.slice() : FALLBACK_EVENTS.map(function(x){ return String(x[0]); });
     var rendered = false;
     var idx = 0;
+    var active = 0;
+    var done = 0;
+    var maxParallel = 3;
 
-    function progress() {
-      var el = byId('athList');
+    function updateProgress() {
+      var el = document.getElementById('athList');
       if (!rendered && el) {
-        el.innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster utøvere...<br><small>' + idx + ' av ' + nums.length + ' øvelser</small></div>';
+        el.innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster utøvere...<br><small>' + done + ' / ' + nums.length + ' øvelser</small></div>';
+      }
+      proxyInfo((currentProxyIndex !== null ? 'Henter via: ' + PROXIES[currentProxyIndex].name + ' · ' : '') + 'Laster utøverliste ' + done + '/' + nums.length);
+    }
+
+    function finishIfDone() {
+      if (done >= nums.length && active === 0) {
+        athletes = Array.from(map.values()).sort(function(a,b) { return a.name.localeCompare(b.name, 'no'); });
+        renderList(athletes);
+        proxyInfo((currentProxyIndex !== null ? 'Henting ferdig via: ' + PROXIES[currentProxyIndex].name : 'Henting ferdig') + ' · ' + athletes.length + ' utøvere');
       }
     }
 
-    function next() {
-      if (!currentMeetNo) return;
-      if (idx >= nums.length) {
-        athletes = Array.from(map.values()).sort(function(a,b) {
-          return a.name.localeCompare(b.name, 'no');
-        });
-        renderList(athletes);
-        return;
-      }
-      progress();
-      var n = nums[idx++];
-      fpSmart('/resultater.aspx?stevnenr=' + encodeURIComponent(currentMeetNo) + '&ovnr=' + encodeURIComponent(n))
-        .then(function(doc) {
-          var lis = doc.querySelectorAll('#panResultatlister li');
-          lis.forEach(function(li) {
-            var a = li.querySelector('a');
-            if (!a) return;
-            var href = a.getAttribute('href') || '';
-            var rm = href.match(/resid=(\d+)/);
-            if (!rm) return;
-            var resid = rm[1];
-            var smalls = li.querySelectorAll('small');
-            var name = '', club = '';
-            if (smalls.length >= 2) name = smalls[0].textContent.trim();
-            if (smalls.length >= 4) club = smalls[2].textContent.trim();
-            else if (smalls.length >= 2) club = smalls[1].textContent.trim();
-            if (name && !map.has(name + '|' + club)) {
-              map.set(name + '|' + club, { name: name, club: club, resid: resid, pid: null });
-            }
-          });
-          if (!rendered && map.size > 5) {
-            athletes = Array.from(map.values()).sort(function(a,b) {
-              return a.name.localeCompare(b.name, 'no');
+    function pump() {
+      while (active < maxParallel && idx < nums.length) {
+        active++;
+        var n = nums[idx++];
+        fpSmart('/resultater.aspx?stevnenr=' + SN + '&ovnr=' + n)
+          .then(function(doc) {
+            var lis = doc.querySelectorAll('#panResultatlister li');
+            Array.prototype.forEach.call(lis, function(li) {
+              var a = li.querySelector('a');
+              if (!a) return;
+              var href = a.getAttribute('href') || '';
+              var rm = href.match(/resid=(\d+)/);
+              if (!rm) return;
+              var resid = rm[1];
+              var parsed = extractNameClubFromLi(li);
+              if (parsed.name && !map.has(parsed.name)) {
+                map.set(parsed.name, { name: parsed.name, club: parsed.club, resid: resid, pid: null });
+              }
             });
-            renderList(athletes);
-            rendered = true;
-          }
-        })
-        .catch(function() {})
-        .then(next);
+            if (!rendered && map.size > 5) {
+              athletes = Array.from(map.values()).sort(function(a,b) { return a.name.localeCompare(b.name, 'no'); });
+              renderList(athletes);
+              rendered = true;
+            }
+          })
+          .catch(function(){})
+          .then(function() {
+            active--;
+            done++;
+            if (!rendered) updateProgress();
+            finishIfDone();
+            pump();
+          });
+      }
     }
-    next();
+
+    updateProgress();
+    pump();
   }
 
   function renderList(list) {
-    var c = byId('athList');
-    if (!currentMeetNo) {
-      c.innerHTML = '<div class="empty"><div class="ico">🏊</div><p>Velg stevne først</p></div>';
-      return;
-    }
+    var c = document.getElementById('athList');
     if (!list.length) {
-      c.innerHTML = '<div class="empty"><div class="ico">👤</div><p>Ingen utøvere funnet</p></div>';
+      c.innerHTML = '<div class="empty"><div class="ico">👤</div><p>Ingen utøvere funnet</p><p style="margin-top:8px;font-size:.72rem;color:#78909c">Prøv å velge en øvelse direkte.</p></div>';
       return;
     }
     var h = '';
@@ -544,7 +393,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
            '<div class="ath-club">' + e(a.club) + '</div></div>';
     });
     c.innerHTML = h;
-    c.querySelectorAll('.ath-item').forEach(function(el) {
+    Array.prototype.forEach.call(c.querySelectorAll('.ath-item'), function(el) {
       el.addEventListener('click', function() {
         var pid = el.dataset.pid;
         if (!pid) {
@@ -562,7 +411,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
   }
 
   function getPid(resid) {
-    return fpSmart('/resultater.aspx?stevnenr=' + encodeURIComponent(currentMeetNo) + '&resid=' + encodeURIComponent(resid))
+    return fpSmart('/resultater.aspx?stevnenr=' + SN + '&resid=' + resid)
       .then(function(doc) {
         var links = doc.querySelectorAll('a');
         for (var i = 0; i < links.length; i++) {
@@ -578,283 +427,26 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
       }).catch(function() { return null; });
   }
 
-  byId('srch').addEventListener('input', function() {
+  document.getElementById('srch').addEventListener('input', function() {
     var q = this.value.toLowerCase().trim();
     renderList(q ? athletes.filter(function(a) {
       return a.name.toLowerCase().indexOf(q) >= 0 || a.club.toLowerCase().indexOf(q) >= 0;
     }) : athletes);
   });
 
-  byId('yearSel').addEventListener('change', function() {
-    loadMeetsForYear(this.value);
+  document.getElementById('evsel').addEventListener('change', function() {
+    if (this.value) showEvent(normalizeOvnr(this.value, this.options[this.selectedIndex].text), this.options[this.selectedIndex].text);
   });
-
-  byId('meetSel').addEventListener('change', function() {
-    if (!this.value) { resetForMeetChange(); return; }
-    loadMeet(this.value, this.options[this.selectedIndex].text);
-  });
-
-  byId('evsel').addEventListener('change', function() {
-    if (this.value) showEvent(this.value, this.options[this.selectedIndex].text);
-  });
-
-
-  var bestSearchToken = 0;
-  var meetListCache = {};
-  var meetEventCache = {};
-
-  var CANONICAL_EVENTS = [
-    '50m fri','100m fri','200m fri','400m fri','800m fri','1500m fri',
-    '50m rygg','100m rygg','200m rygg',
-    '50m bryst','100m bryst','200m bryst',
-    '50m butterfly','100m butterfly','200m butterfly',
-    '100m individuell medley','200m individuell medley','400m individuell medley'
-  ];
-
-  function normKey(s) {
-    return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
-  }
-
-  function canonicalEventName(label) {
-    var s = cleanText(label).toLowerCase();
-    if (!s) return '';
-    if (/\b(4\s*\*|4x|lag|stafett|relay|mixed)\b/i.test(s)) return '';
-    s = s.replace(/^øvelse\s*\d+\.?\s*/i, '')
-         .replace(/\s*-\s*(forsøk|finale|semifinale).*$/i, '')
-         .replace(/,\s*(damer|herrer|jenter|gutter|kvinner|menn).*$/i, '')
-         .replace(/\s+/g, ' ')
-         .trim();
-    var m = s.match(/\b(50|100|200|400|800|1500)m\s+(fri|rygg|bryst|butterfly|individuell\s+medley)\b/i);
-    if (!m) return '';
-    return (m[1] + 'm ' + m[2].replace(/\s+/g, ' ')).toLowerCase();
-  }
-
-  function parseSwimTime(timeText) {
-    var t = String(timeText || '').trim();
-    if (!t || /DNF|DNS|DSQ|DISK|BRUTT/i.test(t)) return null;
-    t = t.replace(/\s+/g, '').replace(',', '.');
-    if (!/^[0-9.]+$/.test(t)) return null;
-    var parts = t.split('.');
-    if (parts.length === 1) return parseFloat(parts[0]);
-    if (parts.length === 2) return parseFloat(parts[0] + '.' + parts[1]);
-    var minutes = parseInt(parts[0], 10);
-    var seconds = parseInt(parts[1], 10);
-    var decimals = parseFloat('0.' + parts.slice(2).join(''));
-    if (isNaN(minutes) || isNaN(seconds) || isNaN(decimals)) return null;
-    return minutes * 60 + seconds + decimals;
-  }
-
-  function eventOptionsFromDoc(doc) {
-    var seen = new Set();
-    var out = [];
-    function add(ovnr, label) {
-      ovnr = normalizeOvnr(ovnr, label);
-      label = cleanText(label);
-      if (!ovnr || seen.has(ovnr)) return;
-      var key = canonicalEventName(label);
-      seen.add(ovnr);
-      out.push({ ovnr: ovnr, label: label || ('Øvelse ' + ovnr), key: key });
-    }
-    var sel = doc.getElementById('ddlEnkeltOvelser');
-    if (!sel) {
-      var selects = doc.querySelectorAll('select');
-      for (var s = 0; s < selects.length; s++) {
-        if (selects[s].textContent.indexOf('Øvelse') >= 0) { sel = selects[s]; break; }
-      }
-    }
-    if (sel) Array.from(sel.options).forEach(function(opt){ add(opt.value, opt.textContent); });
-    doc.querySelectorAll('a[href*="ovnr="]').forEach(function(a){ add(a.getAttribute('href') || '', a.textContent || ''); });
-    return out;
-  }
-
-  function getYearValuesForGlobalSearch() {
-    var ys = Array.from(byId('yearSel').options).map(function(o){ return o.value; }).filter(Boolean);
-    ys.sort(function(a,b){ return parseInt(b,10) - parseInt(a,10); });
-    return ys;
-  }
-
-  function loadMeetsForYearData(year) {
-    year = String(year);
-    if (meetListCache[year]) return Promise.resolve(meetListCache[year]);
-    var paths = yearCandidatePaths(year);
-    function tryPath(i) {
-      if (i >= paths.length) return Promise.resolve([]);
-      return fpSmart(paths[i]).then(function(doc) {
-        var meets = parseMeets(doc, year);
-        if (meets.length) {
-          meetListCache[year] = meets;
-          return meets;
-        }
-        return tryPath(i + 1);
-      }).catch(function(){ return tryPath(i + 1); });
-    }
-    return tryPath(0);
-  }
-
-  function parseRowsFromEventDoc(doc) {
-    var rows = [];
-    var lis = doc.querySelectorAll('#panResultatlister li');
-    lis.forEach(function(li) {
-      var a = li.querySelector('a');
-      var href = a ? a.getAttribute('href') || '' : '';
-      var rm = href.match(/resid=(\d+)/);
-      var resid = rm ? rm[1] : '';
-      var smalls = li.querySelectorAll('small');
-      var name = '', club = '', time = '';
-      if (smalls.length >= 6) {
-        name = smalls[0].textContent.trim();
-        club = smalls[2].textContent.trim();
-        time = smalls[4].textContent.trim();
-      } else if (smalls.length >= 4) {
-        name = smalls[0].textContent.trim();
-        club = smalls[2].textContent.trim();
-        time = smalls[3].textContent.trim();
-      } else if (smalls.length >= 3) {
-        name = smalls[0].textContent.trim();
-        club = smalls[1].textContent.trim();
-        time = smalls[2].textContent.trim();
-      } else if (smalls.length >= 2) {
-        name = smalls[0].textContent.trim();
-        time = smalls[1].textContent.trim();
-      }
-      if (name && resid) rows.push({ name:name, club:club, time:time, resid:resid });
-    });
-    return rows;
-  }
-
-  function verifyResultBirthYear(sn, resid, expectedYear) {
-    if (!expectedYear) return Promise.resolve(true);
-    return fpSmart('/resultater.aspx?stevnenr=' + encodeURIComponent(sn) + '&resid=' + encodeURIComponent(resid))
-      .then(function(doc) {
-        var person = doc.getElementById('lblPerson') ? doc.getElementById('lblPerson').textContent.trim() : '';
-        var m = person.match(/\((\d{4})\)/);
-        return !m || m[1] === String(expectedYear);
-      })
-      .catch(function(){ return true; });
-  }
-
-  function runBestGlobalSearch(profile, eventKey, eventLabel) {
-    if (!profile || !profile.name || !eventKey) return;
-    var token = ++bestSearchToken;
-    var status = byId('bestStatus');
-    var btn = byId('bestSearchBtn');
-    if (btn) btn.disabled = true;
-    status.innerHTML = 'Starter søk i alle år og stevner. Dette kan ta litt tid...';
-
-    var years = getYearValuesForGlobalSearch();
-    var totalMeets = 0, checkedMeets = 0, checkedEvents = 0, matches = 0;
-    var best = null;
-    var nameKey = normKey(profile.name);
-
-    function updateStatus(extra) {
-      if (token !== bestSearchToken) return;
-      var txt = 'Sjekker ' + checkedMeets + (totalMeets ? ' av ' + totalMeets : '') + ' stevner, ' + checkedEvents + ' øvelser. Treffer: ' + matches + '.';
-      if (best) txt += '<div class="best-result"><strong>' + e(best.time) + '</strong><div class="best-meta">' + e(best.eventLabel) + '<br>' + e(best.meetLabel) + '<br>' + e(best.club || '') + '</div></div>';
-      if (extra) txt += '<div class="best-meta">' + e(extra) + '</div>';
-      status.innerHTML = txt;
-    }
-
-    function scanEvent(meet, ev) {
-      if (token !== bestSearchToken) return Promise.resolve();
-      checkedEvents++;
-      return fpSmart('/resultater.aspx?stevnenr=' + encodeURIComponent(meet.sn) + '&ovnr=' + encodeURIComponent(ev.ovnr))
-        .then(function(doc) {
-          var rows = parseRowsFromEventDoc(doc).filter(function(r) {
-            return normKey(r.name) === nameKey && parseSwimTime(r.time) !== null;
-          });
-          var seq = Promise.resolve();
-          rows.forEach(function(r) {
-            seq = seq.then(function() {
-              return verifyResultBirthYear(meet.sn, r.resid, profile.birthYear).then(function(ok) {
-                if (!ok || token !== bestSearchToken) return;
-                var seconds = parseSwimTime(r.time);
-                if (seconds === null) return;
-                matches++;
-                if (!best || seconds < best.seconds) {
-                  best = {
-                    seconds: seconds,
-                    time: r.time,
-                    club: r.club,
-                    meetLabel: meet.label,
-                    eventLabel: ev.label,
-                    sn: meet.sn,
-                    resid: r.resid
-                  };
-                }
-              });
-            });
-          });
-          return seq;
-        })
-        .catch(function(){})
-        .then(function(){ updateStatus(); });
-    }
-
-    function scanMeet(meet) {
-      if (token !== bestSearchToken) return Promise.resolve();
-      checkedMeets++;
-      var eventPromise;
-      if (meetEventCache[meet.sn]) eventPromise = Promise.resolve(meetEventCache[meet.sn]);
-      else eventPromise = fpSmart('/resultater.aspx?stevnenr=' + encodeURIComponent(meet.sn))
-        .then(function(doc) {
-          var events = eventOptionsFromDoc(doc);
-          meetEventCache[meet.sn] = events;
-          return events;
-        })
-        .catch(function(){ return []; });
-
-      return eventPromise.then(function(events) {
-        var wanted = events.filter(function(ev){ return ev.key === eventKey; });
-        var seq = Promise.resolve();
-        wanted.forEach(function(ev){ seq = seq.then(function(){ return scanEvent(meet, ev); }); });
-        return seq;
-      }).then(function(){ updateStatus(); });
-    }
-
-    var allMeets = [];
-    var yearSeq = Promise.resolve();
-    years.forEach(function(year) {
-      yearSeq = yearSeq.then(function() {
-        if (token !== bestSearchToken) return;
-        status.innerHTML = 'Henter stevner for ' + e(year) + '...';
-        return loadMeetsForYearData(year).then(function(meets) {
-          allMeets = allMeets.concat(meets);
-          totalMeets = allMeets.length;
-          updateStatus('Hentet ' + meets.length + ' stevner for ' + year + '.');
-        });
-      });
-    });
-
-    yearSeq.then(function() {
-      var seq = Promise.resolve();
-      allMeets.forEach(function(meet) {
-        seq = seq.then(function(){ return scanMeet(meet); });
-      });
-      return seq;
-    }).then(function() {
-      if (token !== bestSearchToken) return;
-      if (btn) btn.disabled = false;
-      if (best) {
-        status.innerHTML = '<div class="best-result"><div class="best-title">Beste funnet for ' + e(eventLabel) + '</div><strong>' + e(best.time) + '</strong><div class="best-meta">' + e(best.eventLabel) + '<br>' + e(best.meetLabel) + '<br>' + e(best.club || '') + '</div></div>';
-      } else {
-        status.innerHTML = 'Fant ingen godkjent tid for ' + e(profile.name) + ' på ' + e(eventLabel) + ' i de årene/stevnene som ble hentet.';
-      }
-    }).catch(function(err) {
-      if (btn) btn.disabled = false;
-      status.innerHTML = 'Kunne ikke gjennomføre søket: ' + e(err.message || err);
-    });
-  }
 
   function showAthlete(pid, fallbackResid) {
-    if (!currentMeetNo) return;
-    document.querySelectorAll('.ath-item').forEach(function(el) { el.classList.remove('active'); });
+    Array.prototype.forEach.call(document.querySelectorAll('.ath-item'), function(el) { el.classList.remove('active'); });
     var item = document.querySelector('[data-pid="' + pid + '"]') ||
                (fallbackResid ? document.querySelector('[data-resid="' + fallbackResid + '"]') : null);
     if (item) { item.classList.add('active'); item.scrollIntoView({ block: 'nearest' }); }
-    var main = byId('main');
+    var main = document.getElementById('main');
     main.innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster...</div>';
 
-    fpSmart('/resultater.aspx?stevnenr=' + encodeURIComponent(currentMeetNo) + '&pid=' + encodeURIComponent(pid))
+    fpSmart('/resultater.aspx?stevnenr=' + SN + '&pid=' + pid)
       .then(function(doc) {
         var nameRaw = doc.getElementById('lblPerson') ? doc.getElementById('lblPerson').textContent.trim() : '';
         var club    = doc.getElementById('lblKlubb')  ? doc.getElementById('lblKlubb').textContent.trim()  : '';
@@ -865,8 +457,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
 
         var lis = doc.querySelectorAll('#panResultatlister li');
         var rows = [];
-        var bestEventMap = new Map();
-        lis.forEach(function(li) {
+        Array.prototype.forEach.call(lis, function(li) {
           var a = li.querySelector('a');
           var href = a ? a.getAttribute('href') || '' : '';
           var rm = href.match(/resid=(\d+)/);
@@ -887,31 +478,16 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
             event = smalls[0].textContent.trim();
             time  = smalls[1].textContent.trim();
           }
-          var key = canonicalEventName(event);
-          if (key && !bestEventMap.has(key)) bestEventMap.set(key, key);
           rows.push({ rank: rank, event: event, klasse: klasse, time: time, resid: resid });
-        });
-
-        CANONICAL_EVENTS.forEach(function(ev){ if (!bestEventMap.has(ev)) bestEventMap.set(ev, ev); });
-        var eventOptions = Array.from(bestEventMap.keys()).sort(function(a,b) {
-          function n(x){ var m=x.match(/^(\d+)/); return m?parseInt(m[1],10):9999; }
-          var d = n(a)-n(b); return d || a.localeCompare(b, 'no');
         });
 
         var h = '<div class="hero">' +
                 '<div class="avatar">' + e(initials) + '</div>' +
                 '<div class="hero-info"><h2>' + e(name) + '</h2>' +
                 (year ? '<div class="born">Født ' + e(year) + '</div>' : '') +
-                '<div class="club-lbl">🏊 ' + e(club) + '</div>' +
-                (currentMeetName ? '<div class="born">' + e(currentMeetName) + '</div>' : '') +
-                '<div class="best-box"><div class="best-title">Beste resultat uansett stevne/år</div>' +
-                '<div class="best-controls"><select class="evsel" id="bestEventSel">';
-        eventOptions.forEach(function(ev){ h += '<option value="' + e(ev) + '">' + e(ev) + '</option>'; });
-        h += '</select><button class="small-btn" id="bestSearchBtn">Finn beste</button></div>' +
-             '<div class="best-status" id="bestStatus">Velg øvelse og trykk “Finn beste”. Søket går gjennom alle årstall/stevner som kan hentes fra Medley.</div></div>' +
-             '</div></div>' +
-             '<div class="card"><div class="card-hdr"><h2>Alle resultater i valgt stevne</h2>' +
-             '<span class="badge">' + rows.length + ' øvelse' + (rows.length !== 1 ? 'r' : '') + '</span></div>';
+                '<div class="club-lbl">🏊 ' + e(club) + '</div></div></div>' +
+                '<div class="card"><div class="card-hdr"><h2>Alle resultater</h2>' +
+                '<span class="badge">' + rows.length + ' øvelse' + (rows.length !== 1 ? 'r' : '') + '</span></div>';
 
         if (!rows.length) {
           h += '<div class="empty"><div class="ico">📋</div><p>Ingen resultater</p></div>';
@@ -921,7 +497,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
             var rc = rn===1?'r1':rn===2?'r2':rn===3?'r3':'';
             var tc = ['DNF','DSQ','DNS','DISK'].indexOf(r.time) >= 0 ? 'dnf' : '';
             h += '<div class="res-row" style="' + (r.resid ? 'cursor:pointer' : '') + '" ' +
-                 (r.resid ? 'data-resid="'+e(r.resid)+'" data-event="'+e(r.event)+'" data-pid="'+e(pid)+'"' : '') + '>' +
+                 (r.resid ? 'data-resid="'+r.resid+'" data-event="'+e(r.event)+'" data-pid="'+pid+'"' : '') + '>' +
                  '<div class="rank ' + rc + '">' + e(r.rank) + '</div>' +
                  '<div class="res-info"><div class="res-ev">' + e(r.event) + '</div>' +
                  (r.klasse ? '<div class="res-cls">' + e(r.klasse) + '</div>' : '') +
@@ -930,33 +506,22 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
         }
         h += '</div>';
         main.innerHTML = h;
-
-        var bestBtn = byId('bestSearchBtn');
-        if (bestBtn) {
-          bestBtn.addEventListener('click', function() {
-            var sel = byId('bestEventSel');
-            var key = sel ? sel.value : '';
-            runBestGlobalSearch({ name:name, birthYear:year, club:club }, key, key);
-          });
-        }
-
-        main.querySelectorAll('[data-resid][data-pid]').forEach(function(el) {
+        Array.prototype.forEach.call(main.querySelectorAll('[data-resid][data-pid]'), function(el) {
           el.addEventListener('click', function() {
             showDetail(el.dataset.resid, el.dataset.event, el.dataset.pid);
           });
         });
       })
       .catch(function(err) {
-        byId('main').innerHTML = '<div class="empty"><p>Feil: ' + e(err.message || err) + '</p></div>';
+        document.getElementById('main').innerHTML = '<div class="empty"><p>Feil: ' + e(err.message || err) + '</p></div>';
       });
   }
 
   function showDetail(resid, eventName, backPid) {
-    if (!currentMeetNo) return;
-    var main = byId('main');
+    var main = document.getElementById('main');
     main.innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster detaljer...</div>';
 
-    fpSmart('/resultater.aspx?stevnenr=' + encodeURIComponent(currentMeetNo) + '&resid=' + encodeURIComponent(resid))
+    fpSmart('/resultater.aspx?stevnenr=' + SN + '&resid=' + resid)
       .then(function(doc) {
         var person = doc.getElementById('lblPerson') ? doc.getElementById('lblPerson').textContent.trim() : '';
         var club   = doc.getElementById('lblKlubb')  ? doc.getElementById('lblKlubb').textContent.trim()  : '';
@@ -981,15 +546,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
               .map(function(p) { return p.replace(/<[^>]+>/g, '').trim(); })
               .filter(function(p) { return p; });
             parts.forEach(function(p) {
-              if (p.indexOf('Sluttid:') === 0)          sluttid = p.replace('Sluttid:', '').trim();
-              else if (p.indexOf('FINA') === 0)          fina    = p.replace(/FINA[^:]*:/, '').trim();
-              else if (p.indexOf('Påmeldingstid:') === 0 || p.indexOf('P') === 0 && p.indexOf('meldingstid:') > 0)
-                                                          pameld  = p.replace(/P[^:]+:/, '').trim();
+              if (p.indexOf('Sluttid:') === 0) sluttid = p.replace('Sluttid:', '').trim();
+              else if (p.indexOf('FINA') === 0) fina = p.replace(/FINA[^:]*:/, '').trim();
+              else if (p.indexOf('Påmeldingstid:') === 0 || (p.indexOf('P') === 0 && p.indexOf('meldingstid:') > 0)) pameld = p.replace(/P[^:]+:/, '').trim();
             });
           }
           var grids = pan.querySelectorAll('.ui-grid-c');
-          grids.forEach(function(g, i) {
-            var vals = Array.from(g.querySelectorAll('small'))
+          Array.prototype.forEach.call(grids, function(g, i) {
+            var vals = Array.prototype.slice.call(g.querySelectorAll('small'))
               .map(function(s) { return s.textContent.trim(); })
               .filter(function(t) { return t; });
             if (i === 0) cumSplits = vals; else lapSplits = vals;
@@ -1000,29 +564,23 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
                 '<div class="card"><div class="card-hdr"><h2>' + e(eventName || 'Detaljresultat') + '</h2></div>' +
                 '<div style="padding:15px">' +
                 '<div style="font-size:1.05rem;font-weight:700;color:#e0e7ef;margin-bottom:4px;">' + e(person) + '</div>' +
-                '<div style="font-size:0.84rem;color:#4fc3f7;margin-bottom:6px;">🏊 ' + e(club) + '</div>' +
-                (currentMeetName ? '<div style="font-size:0.78rem;color:#78909c;margin-bottom:12px;">' + e(currentMeetName) + '</div>' : '');
+                '<div style="font-size:0.84rem;color:#4fc3f7;margin-bottom:12px;">🏊 ' + e(club) + '</div>';
 
         if (sluttid || fina || pameld) {
           h += '<div class="stats-row">';
-          if (sluttid) h += '<div class="stat-item"><div class="stat-lbl">Sluttid</div>' +
-                            '<div class="stat-val" style="color:#4fc3f7;font-size:1.25rem;font-family:monospace">' + e(sluttid) + '</div></div>';
-          if (fina)    h += '<div class="stat-item"><div class="stat-lbl">FINA-poeng</div>' +
-                            '<div class="stat-val">' + e(fina) + '</div></div>';
-          if (pameld)  h += '<div class="stat-item"><div class="stat-lbl">Påmeldingstid</div>' +
-                            '<div class="stat-val" style="font-family:monospace">' + e(pameld) + '</div></div>';
+          if (sluttid) h += '<div class="stat-item"><div class="stat-lbl">Sluttid</div><div class="stat-val" style="color:#4fc3f7;font-size:1.25rem;font-family:monospace">' + e(sluttid) + '</div></div>';
+          if (fina) h += '<div class="stat-item"><div class="stat-lbl">FINA-poeng</div><div class="stat-val">' + e(fina) + '</div></div>';
+          if (pameld) h += '<div class="stat-item"><div class="stat-lbl">Påmeldingstid</div><div class="stat-val" style="font-family:monospace">' + e(pameld) + '</div></div>';
           h += '</div>';
         }
 
         if (cumSplits.length > 0) {
-          h += '<div class="splits-wrap"><div class="splits-title">Passeringstider (kumulativt)</div>' +
-               '<div class="splits-grid">';
+          h += '<div class="splits-wrap"><div class="splits-title">Passeringstider (kumulativt)</div><div class="splits-grid">';
           cumSplits.forEach(function(c) { h += '<div class="split-cell" style="color:#4fc3f7">' + e(c) + '</div>'; });
           h += '</div></div>';
         }
         if (lapSplits.length > 0) {
-          h += '<div class="splits-wrap" style="padding-top:0"><div class="splits-title">Rundetider</div>' +
-               '<div class="splits-grid">';
+          h += '<div class="splits-wrap" style="padding-top:0"><div class="splits-title">Rundetider</div><div class="splits-grid">';
           lapSplits.forEach(function(c) { h += '<div class="split-cell">' + e(c) + '</div>'; });
           h += '</div></div>';
         }
@@ -1035,31 +593,29 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
         }
       })
       .catch(function(err) {
-        byId('main').innerHTML = '<div class="empty"><p>Feil: ' + e(err.message || err) + '</p></div>';
+        document.getElementById('main').innerHTML = '<div class="empty"><p>Feil: ' + e(err.message || err) + '</p></div>';
       });
   }
 
   function showEvent(ovnr, eventName) {
-    if (!currentMeetNo) return;
-    var main = byId('main');
+    var main = document.getElementById('main');
     main.innerHTML = '<div class="loading"><div class="spinner"></div><br>Laster øvelse...</div>';
-    document.querySelectorAll('.ath-item').forEach(function(el) { el.classList.remove('active'); });
+    Array.prototype.forEach.call(document.querySelectorAll('.ath-item'), function(el) { el.classList.remove('active'); });
 
-    fpSmart('/resultater.aspx?stevnenr=' + encodeURIComponent(currentMeetNo) + '&ovnr=' + encodeURIComponent(ovnr))
+    fpSmart('/resultater.aspx?stevnenr=' + SN + '&ovnr=' + ovnr)
       .then(function(doc) {
         var pan = doc.getElementById('panResultatlister');
         if (!pan) { main.innerHTML = '<div class="empty"><p>Ingen resultater</p></div>'; return; }
 
-        var h = '<div class="card"><div class="card-hdr"><h2>' + e(eventName) + '</h2>' +
-                (currentMeetName ? '<span class="badge">' + e(currentMeetName) + '</span>' : '') + '</div>';
-        var kids = Array.from(pan.children);
+        var h = '<div class="card"><div class="card-hdr"><h2>' + e(eventName) + '</h2></div>';
+        var kids = Array.prototype.slice.call(pan.children);
         var i = 0;
         while (i < kids.length) {
           if (kids[i].tagName === 'H3') {
             h += '<div class="cls-hdr">' + e(kids[i].textContent.trim()) + '</div>';
             i++;
             if (i < kids.length && kids[i].tagName === 'UL') {
-              kids[i].querySelectorAll('li').forEach(function(li) {
+              Array.prototype.forEach.call(kids[i].querySelectorAll('li'), function(li) {
                 var a = li.querySelector('a');
                 var href = a ? a.getAttribute('href') || '' : '';
                 var rm = href.match(/resid=(\d+)/);
@@ -1081,7 +637,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
                 var rc = rn===1?'r1':rn===2?'r2':rn===3?'r3':'';
                 var tc = ['DNF','DSQ','DNS','DISK'].indexOf(time) >= 0 ? 'dnf' : '';
                 h += '<div class="res-row" style="' + (resid ? 'cursor:pointer' : '') + '" ' +
-                     (resid ? 'data-resid2="' + e(resid) + '"' : '') + '>' +
+                     (resid ? 'data-resid2="' + resid + '"' : '') + '>' +
                      '<div class="rank ' + rc + '">' + e(rank) + '</div>' +
                      '<div class="res-info"><div class="res-ev">' + e(name) + '</div>' +
                      (club ? '<div class="res-cls">' + e(club) + '</div>' : '') +
@@ -1093,7 +649,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
         }
         h += '</div>';
         main.innerHTML = h;
-        main.querySelectorAll('[data-resid2]').forEach(function(el) {
+        Array.prototype.forEach.call(main.querySelectorAll('[data-resid2]'), function(el) {
           el.addEventListener('click', function() {
             var resid = el.dataset.resid2;
             getPid(resid).then(function(pid) {
@@ -1104,7 +660,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
         });
       })
       .catch(function(err) {
-        byId('main').innerHTML = '<div class="empty"><p>Feil: ' + e(err.message || err) + '</p></div>';
+        document.getElementById('main').innerHTML = '<div class="empty"><p>Feil: ' + e(err.message || err) + '</p></div>';
       });
   }
 
@@ -1113,11 +669,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1923;color:#e8ecf0;mi
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  initYearSelect();
-  proxyInfo('Henter via egen online API (/api/medley)');
-  resetForMeetChange();
-  loadMeetsForYear(currentYear);
+  init();
 })();
+
 </script>
 </body>
 </html>
